@@ -17,7 +17,27 @@ object FireDepartment {
 
     //    usingDistinctAndAlias(fireDF)
     //    usingWhereAndColRenamed(fireDF)
+    //    usingToTimestamp(fireDF)
+    //    usingCountAndMiscOperations(fireDF)
 
+  }
+
+  private def usingCountAndMiscOperations(fireDF: DataFrame): Unit = {
+    fireDF
+      .select("CallType")
+      .where(col("CallType").isNotNull)
+      .groupBy("CallType")
+      .count()
+      .orderBy(desc("count"))
+      .show(10, false)
+
+    fireDF
+      .select(sum("NumAlarms").alias("Sum of Num Alarms"), avg("NumAlarms") as "Avg of Num Alarms",
+        min("NumAlarms"), max("NumAlarms"))
+      .show()
+  }
+
+  private def usingToTimestamp(fireDF: DataFrame): Unit = {
     val fireTsDF = fireDF
       .withColumn("IncidentDate", to_timestamp(col("CallDate"), "MM/dd/yyyy"))
       .drop("CallDate")
@@ -31,6 +51,13 @@ object FireDepartment {
     fireTsDF
       .select("IncidentDate", "OnWatchDate", "AvailableDtTS")
       .show(5, false)
+
+    fireTsDF
+      .select(year(col("IncidentDate")))
+      .distinct()
+      .orderBy(year(col("IncidentDate")))
+      .show()
+
 
   }
 
